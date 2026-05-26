@@ -18,8 +18,8 @@ if (!apiKey) {
 
 const ai = new GoogleGenAI({
   apiKey: apiKey || "",
-  httpOptions: {
-    headers: {
+});
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -159,90 +159,6 @@ ${ordersContext}
         error: error.message,
         text: "מצטערת, אהוב שלי, אירעה שגיאה בעיבוד הבקשה. באדיבות נועה ❤️",
         html: `<div class="p-4 bg-red-950 border border-red-800 text-red-200 rounded-lg text-right text-sm" dir="rtl">
-          <strong>אוי אהוב שלי, אירעה שגיאה פנימית במערכת הלוגיסטית:</strong>
-          <p class="mt-1 font-mono text-xs text-red-300">${error.message || error}</p>
-          <p class="mt-2 text-xs">נסי שוב או בדיקי את החיבורים. באדיבות נועה ❤️</p>
-        </div>`
-      });
-    }
-  });
-
-  // Serve static assets or configure Vite middleware
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-  }
-
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`🚀 [סבן חומרי בניין] השרת המבצעי פועל על פורט ${PORT}`);
-  });
-}�סיסי. אל תדחי את הפריט - חסר פירושו "הזמנה מיוחדת" שיש לטפל בה!
-- קישור לנהגים: הציעי העברה מהירה של המשלוחים לנהגים הפנויים: היקמת, עלי, איציק.
-- חתימה קבועה חובה בסוף כל הודעה והודעה: "באדיבות נועה ❤️".
-
-מידע נוכחי זמין של המערכת שתשתמשי בו להחלטות שלך:
-${inventoryContext}
-${ordersContext}
-`;
-
-      // Build chat prompt sequence
-      const formattedContents = [];
-      
-      // Load historical chat to Gemini to maintain context
-      if (history && history.length > 0) {
-        for (const msg of history) {
-          formattedContents.push({
-            role: msg.isNoa ? "model" : "user",
-            parts: [{ text: msg.text }]
-          });
-        }
-      }
-
-      // Add the final user message with file context if any
-      const currentUserMessageText = `${text}\n${fileContextString}`;
-      formattedContents.push({
-        role: "user",
-        parts: [{ text: currentUserMessageText }]
-      });
-
-      // Call Gemini 3.5 Flash via the modern client
-      const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
-        contents: formattedContents,
-        config: {
-          systemInstruction,
-          temperature: 0.7,
-        },
-      });
-
-      const responseText = response.text || "סליחה אהוב שלי, יש לי קושי בתקשורת כרגע. באדיבות נועה ❤️";
-
-      // Return both text and formatted HTML representation
-      res.json({
-        text: responseText,
-        // If Gemini did not generate HTML nodes inside the response,
-        // we can return responseText as the text, or extract the HTML blocks.
-        // To be safe and let Noa's custom formatting run directly, we will clean any backticks.
-        html: responseText
-          .replace(/```html/gi, "")
-          .replace(/```/g, "")
-          .trim()
-      });
-    } catch (error: any) {
-      console.error("Noa Chat Error:", error);
-      res.status(500).json({
-        error: error.message,
-        text: "מצטערת, אהוב שלי, אירעה שגיאה בעיבוד הבקשה. באדיבות נועה ❤️",
-        html: `<div class="p-4 bg-red-950 border border-red-800 text-red-200 rounded-lg text-right text-sm">
           <strong>אוי אהוב שלי, אירעה שגיאה פנימית במערכת הלוגיסטית:</strong>
           <p class="mt-1 font-mono text-xs text-red-300">${error.message || error}</p>
           <p class="mt-2 text-xs">נסי שוב או בדיקי את החיבורים. באדיבות נועה ❤️</p>

@@ -22,7 +22,11 @@ const PRESET_FILES = [
     name: "דוח_אספקה_דחוף_ברזל.png",
     type: "image/png",
     size: "420 KB",
-    content: "צילום הexport default function NoaChat({
+    content: "צילום הזמנה מהיר:\nלקוח: אבו חסן עמודים ובנייה\nכתובת אספקה: טייבה, כביש 444 ליד תחנת הדלק החדשה\nמוצרים מבוקשים:\n1. ברזל בניין קשיח (קוטר 12 מ\"מ) - כמות 3 טון\nהערות: הקבלן לחוץ על הברזל ליציקת תקרה מחר בבוקר. יש לארגן משאית מתאימה להובלת כבדה!"
+  }
+];
+
+export default function NoaChat({
   messages,
   onSendMessage,
   isProcessing,
