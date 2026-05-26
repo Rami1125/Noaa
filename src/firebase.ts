@@ -57,8 +57,8 @@ export const testConnection = async () => {
 
 // --- נתוני גיבוי ראשוניים (Bootstrap Data) ---
 const bootstrapInventory = [
-  { id: "m1", itemName: 'מלט שחור מחצבי (שק 25 ק"ג)', quantity: 150, unit: "שקים", inStock: true, lastUpdated: new Date().toISOString() },
-  { id: "m2", itemName: 'טיט מוכן (שק 25 ק"ג)', quantity: 90, unit: "שקים", inStock: true, lastUpdated: new Date().toISOString() },
+  { id: "m1", itemName: 'מלט שחור מחצבי (שק 50 ק"ג)', quantity: 150, unit: "שקים", inStock: true, lastUpdated: new Date().toISOString() },
+  { id: "m2", itemName: 'טיט מוכן איכותי (שק 25 ק"ג)', quantity: 90, unit: "שקים", inStock: true, lastUpdated: new Date().toISOString() },
   { id: "m3", itemName: "חול ים נקי משובח", quantity: 18, unit: "קוב", inStock: true, lastUpdated: new Date().toISOString() },
   { id: "m4", itemName: "בלוק 10 חלול תיקני", quantity: 600, unit: "יחידות", inStock: true, lastUpdated: new Date().toISOString() },
   { id: "m5", itemName: "חצץ חצר שומשום", quantity: 0, unit: "קוב", inStock: false, lastUpdated: new Date().toISOString() }, 

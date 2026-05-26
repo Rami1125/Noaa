@@ -39,8 +39,56 @@ export default function App() {
       setMessages(sorted);
     });
 
-    const unsubscribeOrders = subscribeToCollection("orders", (data) => {
-      const sorted = [...data].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const unsubscribeOrders = subscribeToCollection("orders", (data: any[]) => {
+      const processed = data.map((ord: any) => {
+        let itemsArray: any[] = [];
+        if (Array.isArray(ord.items)) {
+          itemsArray = ord.items;
+        } else if (typeof ord.items === "string") {
+          // Parse string items like "30 מלט שחור 10020, 5 חול 60060" into structured items Array!
+          const parts = ord.items.split(",");
+          for (const p of parts) {
+            const trimmed = p.trim();
+            if (!trimmed) continue;
+            
+            // Match quantity and description
+            const match = trimmed.match(/^(\d+)\s+(.+)$/);
+            const qty = match ? parseInt(match[1]) : 1;
+            const rest = match ? match[2].trim() : trimmed;
+            
+            // Extract trailing SKU if present
+            const skuMatch = rest.match(/(.*?)\s+(\d{5,6})\s*$/);
+            const sku = skuMatch ? skuMatch[2] : undefined;
+            const name = skuMatch ? skuMatch[1].trim() : rest;
+
+            itemsArray.push({
+              name: name,
+              quantity: qty,
+              unit: name.includes("מלט") || name.includes("טיט") || name.includes("צמנט") || name.includes("דבק") || name.includes("שק") ? "שקים" : (name.includes("בלוק") ? "יחידות" : "יח'"),
+              inStock: ord.status !== "הזמנה מיוחדת" && !name.includes("ברזל"),
+              isSpecialOrder: ord.status === "הזמנה מיוחדת" || name.includes("ברזל")
+            });
+          }
+        } else if (ord.itemsArray && Array.isArray(ord.itemsArray)) {
+          itemsArray = ord.itemsArray;
+        }
+
+        // Map driverId back to assignedDriver if assignedDriver is empty
+        let assignedDriver = ord.assignedDriver;
+        if (!assignedDriver && ord.driverId) {
+          if (ord.driverId === "ali") assignedDriver = "עלי";
+          else if (ord.driverId === "hikmat") assignedDriver = "חכמת";
+          else if (ord.driverId !== "pending") assignedDriver = ord.driverId;
+        }
+
+        return {
+          ...ord,
+          assignedDriver,
+          items: itemsArray
+        };
+      });
+
+      const sorted = [...processed].sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
       setOrders(sorted);
     });
 
@@ -251,41 +299,85 @@ export default function App() {
         data.parsedOrders.forEach((parsed: any) => {
           if (!parsed.items || parsed.items.length === 0) return;
 
-          const mappedItems = parsed.items.map((item: any) => {
-            const cleanName = item.name || "";
-            const matchedInv = inventory.find(i => 
-              i.itemName.toLowerCase().includes(cleanName.toLowerCase()) || 
-              cleanName.toLowerCase().includes(i.itemName.toLowerCase())
-            );
+          let mappedItems: any[] = [];
+          const rawItemsString = typeof parsed.items === "string" ? parsed.items : "";
 
-            return {
-              name: item.name,
-              quantity: item.qty || 1,
-              unit: matchedInv ? matchedInv.unit : "יחידות",
-              inStock: !item.isSpecialOrder,
-              isSpecialOrder: !!item.isSpecialOrder
-            };
-          });
+          if (typeof parsed.items === "string") {
+            const parts = parsed.items.split(",");
+            for (const p of parts) {
+              const trimmed = p.trim();
+              if (!trimmed) continue;
+              
+              const match = trimmed.match(/^(\d+)\s+(.+)$/);
+              const qty = match ? parseInt(match[1]) : 1;
+              const rest = match ? match[2].trim() : trimmed;
+              
+              const skuMatch = rest.match(/(.*?)\s+(\d{5,6})\s*$/);
+              const sku = skuMatch ? skuMatch[2] : undefined;
+              const name = skuMatch ? skuMatch[1].trim() : rest;
+
+              const matchedInv = inventory.find(i => 
+                i.itemName.toLowerCase().includes(name.toLowerCase()) || 
+                name.toLowerCase().includes(i.itemName.toLowerCase())
+              );
+
+              mappedItems.push({
+                name: matchedInv ? matchedInv.itemName : name,
+                quantity: qty,
+                unit: matchedInv ? matchedInv.unit : (name.includes("מלט") || name.includes("טיט") || name.includes("צಮנט") || name.includes("דבק") || name.includes("שק") ? "שקים" : (name.includes("בלוק") ? "יחידות" : "יח'")),
+                inStock: parsed.status !== "הזמנה מיוחדת" && !name.includes("ברזל"),
+                isSpecialOrder: parsed.status === "הזמנה מיוחדת" || name.includes("ברזל")
+              });
+            }
+          } else if (Array.isArray(parsed.items)) {
+            mappedItems = parsed.items.map((item: any) => {
+              const cleanName = item.name || "";
+              const matchedInv = inventory.find(i => 
+                i.itemName.toLowerCase().includes(cleanName.toLowerCase()) || 
+                cleanName.toLowerCase().includes(i.itemName.toLowerCase())
+              );
+
+              return {
+                name: item.name,
+                quantity: item.qty || 1,
+                unit: matchedInv ? matchedInv.unit : "יחידות",
+                inStock: !item.isSpecialOrder,
+                isSpecialOrder: !!item.isSpecialOrder
+              };
+            });
+          }
 
           const hasSpecial = mappedItems.some((it: any) => it.isSpecialOrder);
           
-          // Match driver if valid or fallback
-          let driverVal = null;
-          if (parsed.driver && parsed.driver !== "ממתין לשיבוץ") {
+          let driverVal: string | null = null;
+          if (parsed.driverId === "ali") {
+            driverVal = "עלי";
+          } else if (parsed.driverId === "hikmat") {
+            driverVal = "חכמת";
+          } else if (parsed.driver && parsed.driver !== "ממתין לשיבוץ") {
             if (parsed.driver.includes("עלי")) driverVal = "עלי";
             else if (parsed.driver.includes("חכמת")) driverVal = "חכמת";
             else driverVal = parsed.driver;
           }
 
-          const autoOrder: Order = {
-            id: parsed.customerName?.includes("חמאדה") ? "SAB-1025" : 
-                (parsed.customerName?.includes("חסן") ? "SAB-1026" : `SAB-${Math.floor(1000 + Math.random() * 9000)}`),
+          const orderId = parsed.customerName?.includes("חמאדה") ? "SAB-1025" : 
+                          (parsed.customerName?.includes("חסן") ? "SAB-1026" : `SAB-${Math.floor(1000 + Math.random() * 9000)}`);
+
+          const autoOrder: any = {
+            id: orderId,
             customerName: parsed.customerName || "לקוח לא ידוע",
-            items: mappedItems,
-            status: hasSpecial ? "הזמנה מיוחדת" : "בטיפול",
-            assignedDriver: driverVal,
+            customerPhone: parsed.customerPhone || "050-0000000",
+            destination: parsed.destination || "טייבה, מגרש ח.סבן",
             deliveryAddress: parsed.destination || "טייבה, מגרש ח.סבן",
-            notes: `נרשם אוטומטית ע"י המוח הדיגיטלי נועה ❤️ (Client-Side AI).`,
+            warehouse: parsed.warehouse || "החרש",
+            driverId: parsed.driverId || (driverVal === "עלי" ? "ali" : driverVal === "חכמת" ? "hikmat" : "pending"),
+            assignedDriver: driverVal,
+            items: rawItemsString || parsed.items, // Stores directly rawItemsString for Firestore Schema compliance
+            itemsArray: mappedItems, // Stores array presentation as backup 
+            status: hasSpecial || parsed.status === "הזמנה מיוחדת" ? "הזמנה מיוחדת" : (driverVal ? "בטיפול" : "ממתין"),
+            date: parsed.date || new Date().toISOString().split("T")[0],
+            time: parsed.time || "08:00",
+            notes: `נרשם אוטומטית ע"י המוח הדיגיטלי נועה ❤️ (Dual-Entry Sync).`,
             createdAt: new Date().toISOString()
           };
 
