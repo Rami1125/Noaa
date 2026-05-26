@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { InventoryItem } from "../types";
 import { Package, Plus, Minus, CheckCircle, XCircle, RefreshCw } from "lucide-react";
+import { motion } from "motion/react";
 
 interface InventoryManagerProps {
   inventory: InventoryItem[];
@@ -115,10 +116,16 @@ export default function InventoryManager({ inventory, onUpdateStock, onAddNewInv
                 <td className="py-1.5 font-bold text-white text-[11px]">
                   {item.itemName}
                 </td>
-                <td className="py-1.5 text-center text-slate-300 font-mono text-[11px]">
-                  <span className={item.quantity === 0 ? "text-amber-500 font-bold" : "text-slate-300"}>
+                <td className="py-1.5 text-center font-mono text-[11px]">
+                  <motion.span
+                    key={item.quantity}
+                    initial={{ scale: 1.35, color: "#10b981", y: -2 }}
+                    animate={{ scale: 1, color: item.quantity === 0 ? "#f59e0b" : "#cbd5e1", y: 0 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 12 }}
+                    className={`inline-block ${item.quantity === 0 ? "text-amber-500 font-bold" : "text-slate-300"}`}
+                  >
                     {item.quantity} {item.unit}
-                  </span>
+                  </motion.span>
                 </td>
                 <td className="py-1.5 text-center">
                   <button
