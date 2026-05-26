@@ -1,0 +1,178 @@
+{
+  "entities": {
+    "Message": {
+      "title": "Message",
+      "description": "An operational message in Noa's interactive chat room",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the message"
+        },
+        "sender": {
+          "type": "string",
+          "description": "Name of the sender (e.g., 'נועה', 'ראמי')"
+        },
+        "text": {
+          "type": "string",
+          "description": "The raw message text in Hebrew"
+        },
+        "html": {
+          "type": "string",
+          "description": "Custom HTML/Tailwind styling returned by Noa for interactive cards"
+        },
+        "isNoa": {
+          "type": "boolean",
+          "description": "Flag indicating if the message is from Noa"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the message was sent"
+        },
+        "attachment": {
+          "type": "object",
+          "description": "Assigned file attachment like a simulated PDF or image"
+        }
+      },
+      "required": [
+        "sender",
+        "text",
+        "createdAt",
+        "isNoa"
+      ]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "An operational supply order for building materials",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "customerName": {
+          "type": "string",
+          "description": "The name of the contractor or customer"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "items": {
+          "type": "array",
+          "description": "The ordered items list with inventory checks"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ממתין",
+            "בטיפול",
+            "נשלח",
+            "הזמנה מיוחדת"
+          ]
+        },
+        "assignedDriver": {
+          "type": "string",
+          "description": "Assigned driver name (e.g., היקמת, עלי, איציק, אלי, שריף)"
+        },
+        "deliveryAddress": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "customerName",
+        "items",
+        "status",
+        "createdAt"
+      ]
+    },
+    "InventoryItem": {
+      "title": "InventoryItem",
+      "description": "A single building material item stock definition",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "itemName": {
+          "type": "string",
+          "description": "The name of the item (e.g., מלט שחור, בלוק 10)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Current quantity in stock"
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit (שקים, קוב, יחידות, טון)"
+        },
+        "inStock": {
+          "type": "boolean",
+          "description": "Is this item available in stock"
+        },
+        "lastUpdated": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "itemName",
+        "quantity",
+        "unit",
+        "inStock"
+      ]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "Regular building contractor details",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "customerName": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "outstandingBalance": {
+          "type": "number",
+          "description": "Outstanding balance in Shekels (₪)"
+        }
+      },
+      "required": [
+        "customerName",
+        "phone"
+      ]
+    }
+  },
+  "firestore": {
+    "/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Collection of operational chat messages"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Collection of supply and delivery orders"
+    },
+    "/inventory/{itemId}": {
+      "schema": "InventoryItem",
+      "description": "Collection of available building materials and stock status"
+    },
+    "/customers/{customerId}": {
+      "schema": "Customer",
+      "description": "Collection of regular construction contractors"
+    }
+  }
+}

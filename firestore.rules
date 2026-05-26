@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net (Fortress Principle)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reusable, hardened helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Messages collection rules
+    match /messages/{messageId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(messageId) && 
+                    request.resource.data.sender is string &&
+                    request.resource.data.text is string &&
+                    request.resource.data.isNoa is bool &&
+                    request.resource.data.createdAt != null;
+      allow update, delete: if false; // Logs are immutable and cannot be deleted or altered
+    }
+
+    // Orders collection rules
+    match /orders/{orderId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(orderId) &&
+                    request.resource.data.customerName is string &&
+                    request.resource.data.items is list &&
+                    request.resource.data.status is string &&
+                    request.resource.data.createdAt != null;
+      allow update: if isSignedIn() && isValidId(orderId) && 
+                    request.resource.data.customerName is string &&
+                    request.resource.data.status is string;
+      allow delete: if isSignedIn() && isValidId(orderId);
+    }
+
+    // Inventory collection rules
+    match /inventory/{itemId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(itemId) &&
+                            request.resource.data.itemName is string &&
+                            request.resource.data.quantity is number &&
+                            request.resource.data.inStock is bool;
+      allow delete: if isSignedIn() && isValidId(itemId);
+    }
+
+    // Customers collection rules
+    match /customers/{customerId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(customerId) &&
+                            request.resource.data.customerName is string &&
+                            request.resource.data.phone is string;
+      allow delete: if isSignedIn() && isValidId(customerId);
+    }
+  }
+}

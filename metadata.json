@@ -1,0 +1,8 @@
+{
+  "name": "ח. סבן - המוח המבצעי",
+  "description": "מערכת ניהול ולוגיסטיקה חכמה באדיבות נועה - חדר צ'אט מבצעי לניהול הזמנות, מלאי ונהגים.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
