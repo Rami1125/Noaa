@@ -77,7 +77,7 @@
         },
         "assignedDriver": {
           "type": "string",
-          "description": "Assigned driver name (e.g., היקמת, עלי, איציק, אלי, שריף)"
+          "description": "Assigned driver name (e.g., חכמת, עלי, איציק, אלי, שריף)"
         },
         "deliveryAddress": {
           "type": "string"

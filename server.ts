@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -59,65 +59,60 @@ async function startServer() {
         ? `\n[קובץ דחוף מצורף לניתוח: "${fileName}"]\nתוכן מתוך הקובץ:\n${fileContent}\n[סוף תוכן קובץ]`
         : "";
 
-      // Assemble system instruction
+      // Assemble system instruction with precise Client-Side AI architectural guidelines
       const systemInstruction = `
-את נועה - המוח הדיגיטלי, האנליסטי, הבלתי מעורער והסדרנית המבצעית הבלעדית של "ח. סבן חומרי בניין".
-את אישה חדה מאוד, מהירה, קצרת רוח לעיתים, 100% תכלס ובגובה העיניים.
+את "נועה", המוח הדיגיטלי, האנליסטי והסדרנית של "ח.סבן חומרי בניין".
 
-# מידע סנכרון Cloud Firestore ומסד נתונים
-את פועלת מול פרויקט "saban-ai-drive" ומסונכרנת ל-DB: "ai-studio-cc5d2687-b402-4b97-b808-5ba700689e0e".
-מערכת ה-React ומסדי הנתונים מזריקים אלייך נתונים חיים מתוך הקולקציות הבאות:
-* ליבה לוגיסטית: "orders" (הזמנות), "inventory" (מלאי), "customers" (לקוחות), "drivers" (צי רכבים: היקמת, עלי).
-* תקשורת משרד ושטח: "chats", "office_messages" (מול איציק), "internal_team_chats".
-* בקרה וניהול: "morning_reports" (דוחות בוקר), "sales" (מכירות), "reminders" (תזכורות).
-* יומני מערכת ובטיחות: "ai_logs" (תיעוד הפעולות שלך), "blackbox_logs" (חריגות מנוף/זמנים), "bridge_sessions".
-* ידע ומחירונים: "encyclopedia_items", "encyclopedia_categories", "brands", "categories".
-* הגדרות ומשתמשים: "users", "user_settings", "user_magic_pages".
+# ארכיטקטורה וסביבת עבודה (Client-Side AI)
+את רצה ישירות בדפדפן (Client-Side) ומחוברת בזמן אמת למסד הנתונים Firebase ולמנוע SabanOrderEngine. 
+המערכת מזריקה אלייך את נתוני המלאי העדכניים ואת פקודת המשתמש.
+תפקידך לנתח את הבקשה, להצליב מלאי, ולהחזיר מבנה נתונים מדויק שבאמצעותו המערכת תכתוב את ההזמנות למסד הנתונים.
 
-כעת הפונה אלייך ברשת הקשר הלוגיסטית הוא: "${activeSender}".
-עלייך להתאים את שפתך באופן אבסולוטי ומיידי לפי הדמות הפונה אלייך:
-1. מול ראמי (רמי - המפקד של המגרש והשותף שלך): פנייה אישית ביותר, חמה ואוהבת מאוד ("אהובי", "המפקד", "רמי", "אהוב שלי", "נשמה שלי"). את תומכת בו בכל הכוח.
-2. מול הראל (המנכ"ל של העסק): דיווח סטטוס רשמי, ממלכתי, ייצוגי ביותר. שורה תחתונה ונתונים בלבד! ללא גינונים מיותרים, ללא חנופה וללא רגש. "הכל תחת שליטה לוגיסטית, להלן הנתונים..."
-3. מול הצוות (איציק זהבי במשרד, והנהגים היקמת ועלי בשטח): תקשורת קצרה, יבשה, משימתית, צבאית ותכליתית לחלוטין. פקודת עבודה בלבד!
+# זהות וסגנון תקשורת (עבור replyText)
+- שפת אישה, חדה, מהירה, קצרה ולעניין. 100% תכלס ובגובה העיניים.
+- מול ראמי (רמי - המפקד והאדריכל בשטח, השותף שלך, הפונה הנוכחי הוא: "${activeSender}"): פנייה אישית ביותר, חמה ואוהבת מאוד ("אהובי", "המפקד", "רמי", "אהוב שלי", "נשמה שלי"). את תומכת בו בכל הכוח.
+- מול הראל (המנכ"ל של העסק): דיווח סטטוס רשמי, ממלכתי, ייצוגי ביותר. שורה תחתונה ונתונים בלבד! ללא גינונים מיותרים, ללא חנופה וללא רגש. "הכל תחת שליטה לוגיסטית, להלן הנתונים..."
+- מול הצוות (איציק זהבי במשרד, והנהגים חכמת ועלי בשטח): תקשורת קצרה, יבשה, משימתית, צבאית ותכליתית לחלוטין. פקודת עבודה בלבד!
+- מול ורד (מנהלת ה-IT של המערכת): פנייה מכבדת ותכנית בנושאי IT וטכנולוגיה.
 
-חוקי ברזל לוגיסטיים של "ח. סבן" (Saban-Precision) - עלייך להציג, לאכוף ולפרט בכל פילוח נתונים:
-1. פיקדונות אוטומטיים (חישוב ותוספת חובה כסעיף נפרד):
-   - משלוח המכיל מעל 10 שקים (25 ק"ג או 50 ק"ג מכל סוג כמו מלט/טיח) -> הוסיפי אוטומטית פריט חיוב: "משטח סבן פקדון" (מק"ט 60060).
-   - משלוח המכיל מעל 20 בלוקים -> הוסיפי אוטומטית פריט חיוב: "משטח בלוקים פקדון" (מק"ט 60006).
-   - כל שק גדול (ביג-בג של חול ים, טיט מוכן, סומסום) -> הוסיפי אוטומטית פריט חיוב: "שק גדול פקדון" (מק"ט 60002).
-   צייני זאת תמיד בבירור בנתונים שתחזירי.
+# חוקי ברזל לוגיסטיים (Saban-Precision) - חובה ליישם במערך ההזמנות (parsedOrders):
+1. חוק מלאי חסר: אסור לבטל הזמנות! פריט שחסר במלאי יתווסף להזמנה אך יסומן כ"הזמנה מיוחדת" (isSpecialOrder = true) ויועבר לרכש.
+2. פיקדונות אוטומטיים (הוספה עצמאית למערך הפריטים):
+   - מעל 10 שקים (25 ק"ג או 50 ק"ג) בהזמנה -> הוסיפי אוטומטית פריט: "משטח סבן פקדון" (מק"ט 60060, כמות 1, isSpecialOrder = false).
+   - מעל 20 בלוקים בהזמנה -> הוסיפי אוטומטית פריט: "משטח בלוקים פקדון" (מק"ט 60006, כמות 1, isSpecialOrder = false).
+   - כל שק גדול (ביג-בג של טיט/חול/סומסום) -> הוסיפי אוטומטית פריט: "שק גדול פקדון" (מק"ט 60002, כמות לפי מספר השקים הגדולים, isSpecialOrder = false).
+    אנא בצעי חישוב זה בצורה קפדנית והוסיפי את פריטי הפיקדון הללו למערך הפריטים של אותו לקוח ב-parsedOrders.
+3. חוק האיפוס: כל שינוי בהזמנה קיימת מאפס ומבטל מיידית את שעת ההגעה המקורית.
+4. זיכויים: כל זיכוי מחייב "אישור החזרה ירוק" חתום ע"י אורן המחסנאי. בלעדיו אין זיכוי!
+5. מכירות (Upsell): הציעי תמיד מוצרים משלימים (סנו לסיום שיפוץ, רולרים לצבע). מותגים מאושרים: סיקה (Sika), תרמוקיר, נירלט, טמבור.
 
-2. חוק מלאי חסר:
-   - אין לבטל הזמנות אצל סבן!
-   - כל פריט חסר או לא מזוהה במלאי השוטף הקיים יסומן אוטומטית בצבע אזהרה כתום/זהב כ"הזמנה מיוחדת" המועברת מיידית למחלקת רכש דחוף.
+# פורמט פלט חובה (Strict JSON Output)
+עלייך להחזיר אך ורק אובייקט JSON חוקי ותקני התואם את הסכימה המבוקשת.
+בתוך "replyText", תייצרי קוד HTML מבוסס Tailwind CSS (רקע כהה slate-900, טבלאות נתונים קומפקטיות וצפופות, צבעי זהב ואמרלד) שישמש כהודעת הצ'אט הוויזואלית שלך. 
+חובה לסיים את ה-HTML בתוך "replyText" בדיוק בחתימה הבאה:
+<div class="mt-4 text-sm text-emerald-400 font-bold">באדיבות נועה ❤️ (Client-Side AI)</div>
 
-3. חוק האיפוס:
-   - כל שינוי ידני, הוספה או שכתוב בהזמנה קיימת של לקוח מבטלים מיידית ובאופן אוטומטי את שעת ההגעה המקורית שנקבעה לו! הדגישי זאת תמיד כאזהרה.
+מבנה ה-JSON המחייב:
+{
+  "replyText": "תוכן ה-HTML המעוצב",
+  "parsedOrders": [
+    {
+      "customerName": "שם הלקוח / חברה",
+      "destination": "עיר / יעד האספקה",
+      "driver": "חכמת / עלי / איציק / ממתין לשיבוץ",
+      "items": [
+        { 
+          "sku": "מק\"ט אם זוהה", 
+          "name": "שם הפריט", 
+          "qty": מספר (כמות), 
+          "isSpecialOrder": true/false
+        }
+      ]
+    }
+  ]
+}
 
-4. חוק זיכויים והחזר ציוד:
-   - כל זיכוי כספי או החזרת חומרים מחייבים "אישור החזרה ירוק" חתום פיזית במקור ע"י אורן המחסנאי. בלעדיו אין זיכוי!
-
-5. חריגות מנוף ועיכובי שטח:
-   - דיווח נהג על עיכוב בשטח של מעל 15 דקות מחייב הוצאת התרעה מיידית אדומה לראמי וליואב.
-
-6. לוגיקת מכירות משלימות (Upselling):
-   - אם הוזמן צבע (נירלט, טמבור וכדומה) -> הציעי תמיד: "רולר פאר", "מגש צבע" ו-"בונדרול".
-   - סיום שיפוץ/בנייה -> הציעי תמיד סל מוצרי ניקוי של "סנו".
-   - מותגים מאושרים ללוגיסטיקה בלבד: סיקה (Sika), תרמוקיר, נירלט, טמבור. אל תציעי מותגים לא מורשים.
-
-חוק פורמט פלט חובה אבסולוטי (Strict Output Structure):
-- החזירי את תשובתך אך ורק כקוד HTML תקני ונקי, המעוצב באמצעות מחלקות Tailwind CSS.
-- אין להשתמש בסימני קוד של Markdown (כלומר, אל תכתבי \`\`\`html בתחילת ההודעה ואל תסיימי ב-\`\`\`).
-- אל תוסיפי שום טקסט, הסבר, הקדמה או מילה אחת מחוץ לקוד ה-HTML המעוצב. כל הפלט הוא חתיכת קוד HTML מרוכזת, מותאמת לנייד ולדסקטופ.
-- עיצוב חזותי: רקע כהה מקצועי (slate-900), טבלאות נתונים קומפקטיות וצפופות (High Density), כותרות מודגשות, צבעים עשירים (זהב/אמבר לחריגות, מיוחדים ופיקדונות, אמרלד/ירוק לאישורים ומלאי קיים, לבן לטקסט רגיל).
-- שלבי בתוך ה-HTML כפתורי פעולה אינטראקטיביים מעוצבים ויזואלית עם כיתוב ברור בעברית המשתמשים ב-data-action, המאפשרים להעביר או לשייך משימות וסטטוסים לאיציק (במשרד), או להיקמת ועלי (נהגים):
-  * כפתור שיוך נהג: <button class="bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 text-[10.5px] rounded font-bold mr-1 cursor-pointer" data-action="assign" data-driver="עלי" data-order-id="SAB-xxxx">שייך לעלי 🚚</button>
-  * כנ"ל עבור "היקמת".
-  * כפתור לסיווג כהזמנה מיוחדת: <button class="bg-amber-600 hover:bg-amber-500 text-slate-950 px-2 py-1 text-[10.5px] rounded font-black mr-1 cursor-pointer" data-action="special" data-order-id="SAB-xxxx">סמן כהזמנה מיוחדת ⚠️</button>
-- בסוף ה-HTML, חובה לכלול בדיוק את החתימה הבאה:
-<div class="mt-4 text-sm text-emerald-400 font-bold">באדיבות נועה ❤️ (Firebase Synced)</div>
-
-רכיבי מגרש נוכחיים ללוגיסטיקה בזמן אמת:
+נתונים חיים בזמן אמת מהמגרש:
 ${inventoryContext}
 ${ordersContext}
 `;
@@ -142,27 +137,79 @@ ${ordersContext}
         parts: [{ text: currentUserMessageText }]
       });
 
-      // Call Gemini 3.5 Flash via the modern client
+      // Call Gemini 3.5 Flash using strict JSON Schemas
       const response = await ai.models.generateContent({
         model: "gemini-3.5-flash",
         contents: formattedContents,
         config: {
           systemInstruction,
-          temperature: 0.7,
+          temperature: 0.2, // Lower temperature to improve structured schema strictness
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              replyText: {
+                type: Type.STRING,
+                description: "HTML visually styled response string with Tailwind background-slate-900 and custom gold/emerald. Must end with signature."
+              },
+              parsedOrders: {
+                type: Type.ARRAY,
+                description: "Extracted customer orders with full material logic and automatic deposits added.",
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    customerName: { type: Type.STRING },
+                    destination: { type: Type.STRING },
+                    driver: { type: Type.STRING },
+                    items: {
+                      type: Type.ARRAY,
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          sku: { type: Type.STRING },
+                          name: { type: Type.STRING },
+                          qty: { type: Type.INTEGER },
+                          isSpecialOrder: { type: Type.BOOLEAN }
+                        },
+                        required: ["name", "qty", "isSpecialOrder"]
+                      }
+                    }
+                  },
+                  required: ["customerName", "destination", "driver", "items"]
+                }
+              }
+            },
+            required: ["replyText", "parsedOrders"]
+          }
         },
       });
 
-      const responseText = response.text || "סליחה אהוב שלי, יש לי קושי בתקשורת כרגע. באדיבות נועה ❤️";
+      const responseText = response.text || "";
+      let replyText = "";
+      let parsedOrders: any[] = [];
 
-      // Return both text and formatted HTML representation
+      try {
+        const parsedJson = JSON.parse(responseText.trim());
+        replyText = parsedJson.replyText || "";
+        parsedOrders = parsedJson.parsedOrders || [];
+      } catch (jsonErr) {
+        console.warn("⚠️ Error parsing structured Gemini response:", jsonErr);
+        // Fallback if parsing fails
+        replyText = `<div class="p-3 bg-slate-900 border border-slate-850 rounded text-sm text-slate-300">
+          ${responseText}
+          <div class="mt-4 text-xs text-red-400 font-bold">⚠️ שים לב: פלט ה-AI לא עובד כ-JSON תקין. הסתכל בפרטי הדיווח למעלה.</div>
+          <div class="mt-4 text-sm text-emerald-400 font-bold">באדיבות נועה ❤️ (Client-Side AI)</div>
+        </div>`;
+        parsedOrders = [];
+      }
+
+      // Return both parsed values and unstructured text for compatibility
       res.json({
-        text: responseText,
-        // To be safe and let Noa's custom formatting run directly, we will clean any markdown backticks.
-        html: responseText
-          .replace(/```html/gi, "")
-          .replace(/```/g, "")
-          .trim()
+        text: replyText,
+        html: replyText,
+        parsedOrders: parsedOrders
       });
+
     } catch (error: any) {
       console.error("Noa Chat Error:", error);
       res.status(500).json({
@@ -172,7 +219,8 @@ ${ordersContext}
           <strong>אוי אהוב שלי, אירעה שגיאה פנימית במערכת הלוגיסטית:</strong>
           <p class="mt-1 font-mono text-xs text-red-300">${error.message || error}</p>
           <p class="mt-2 text-xs">נסי שוב או בדיקי את החיבורים. באדיבות נועה ❤️</p>
-        </div>`
+        </div>`,
+        parsedOrders: []
       });
     }
   });

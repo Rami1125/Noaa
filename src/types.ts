@@ -45,7 +45,7 @@ export interface Order {
   customerName: string;
   items: OrderItem[];
   status: OrderStatus;
-  assignedDriver: string | null; // e.g., "היקמת", "עלי", "איציק"
+  assignedDriver: string | null; // e.g., "חכמת", "עלי", "איציק"
   deliveryAddress: string;
   notes?: string;
   createdAt: string;

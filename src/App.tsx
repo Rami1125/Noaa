@@ -20,9 +20,9 @@ export default function App() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([
-    { name: "עלי", phone: "054-7778881", truckNumber: "סוזוקי סופר-קארי 320", status: "פנוי" },
-    { name: "היקמת", phone: "052-4443332", truckNumber: "וולוו FH-16 כבדה", status: "פנוי" },
-    { name: "איציק", phone: "050-9990001", truckNumber: "איסוזו סומו 12 טון", status: "פנוי" }
+    { name: "עלי", phone: "054-2276631", truckNumber: "פריקה ידנית - איסוזו", status: "פנוי" },
+    { name: "חכמת", phone: "053-2316985", truckNumber: "מרצדס -מנוף 10 מטר ", status: "פנוי" },
+    
   ]);
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -247,10 +247,51 @@ export default function App() {
       });
 
       // 4. Try to parse and execute automatic actions if Gemini extracted order values
-      // If the model suggested a structured order or action in its reply, we can integrate it!
-      // Here, we look for order extraction payloads. We simulated file-upload triggers.
-      // If we uploaded "סריקת_חשבונית_חמאדה_חומרי_בניין.pdf", we can auto-generate it.
-      if (fileAttachment && fileAttachment.name.includes("חמאדה")) {
+      if (data.parsedOrders && data.parsedOrders.length > 0) {
+        data.parsedOrders.forEach((parsed: any) => {
+          if (!parsed.items || parsed.items.length === 0) return;
+
+          const mappedItems = parsed.items.map((item: any) => {
+            const cleanName = item.name || "";
+            const matchedInv = inventory.find(i => 
+              i.itemName.toLowerCase().includes(cleanName.toLowerCase()) || 
+              cleanName.toLowerCase().includes(i.itemName.toLowerCase())
+            );
+
+            return {
+              name: item.name,
+              quantity: item.qty || 1,
+              unit: matchedInv ? matchedInv.unit : "יחידות",
+              inStock: !item.isSpecialOrder,
+              isSpecialOrder: !!item.isSpecialOrder
+            };
+          });
+
+          const hasSpecial = mappedItems.some((it: any) => it.isSpecialOrder);
+          
+          // Match driver if valid or fallback
+          let driverVal = null;
+          if (parsed.driver && parsed.driver !== "ממתין לשיבוץ") {
+            if (parsed.driver.includes("עלי")) driverVal = "עלי";
+            else if (parsed.driver.includes("חכמת")) driverVal = "חכמת";
+            else driverVal = parsed.driver;
+          }
+
+          const autoOrder: Order = {
+            id: parsed.customerName?.includes("חמאדה") ? "SAB-1025" : 
+                (parsed.customerName?.includes("חסן") ? "SAB-1026" : `SAB-${Math.floor(1000 + Math.random() * 9000)}`),
+            customerName: parsed.customerName || "לקוח לא ידוע",
+            items: mappedItems,
+            status: hasSpecial ? "הזמנה מיוחדת" : "בטיפול",
+            assignedDriver: driverVal,
+            deliveryAddress: parsed.destination || "טייבה, מגרש ח.סבן",
+            notes: `נרשם אוטומטית ע"י המוח הדיגיטלי נועה ❤️ (Client-Side AI).`,
+            createdAt: new Date().toISOString()
+          };
+
+          addItemToCollection("orders", autoOrder);
+        });
+      } else if (fileAttachment && fileAttachment.name.includes("חמאדה")) {
         // Automatically append the extracted order SAB-1025 for Hamada
         setTimeout(() => {
           const matchingMelt = inventory.find(i => i.id === "m1");

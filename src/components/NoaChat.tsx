@@ -127,7 +127,8 @@ export default function NoaChat({
             { id: "הראל", label: "הראל המנכ\"ל", activeStyle: "border-white bg-slate-800 text-white" },
             { id: "איציק", label: "איציק מנהל משרד", activeStyle: "border-sky-600 bg-sky-950 text-sky-400" },
             { id: "עלי", label: "עלי נהג", activeStyle: "border-amber-600 bg-amber-950 text-amber-400" },
-            { id: "היקמת", label: "היקמת נהג", activeStyle: "border-emerald-600 bg-emerald-950 text-emerald-400" }
+            { id: "חכמת", label: "חכמת נהג", activeStyle: "border-emerald-600 bg-emerald-950 text-emerald-400" },
+            { id: "ורד", label: " מנהלת IT", activeStyle: "border-emerald-600 bg-emerald-950 text-emerald-400" }
           ].map(user => (
             <button
               key={user.id}
